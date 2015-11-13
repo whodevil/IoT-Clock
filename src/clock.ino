@@ -35,6 +35,7 @@ void setup () {
 
 void loop () {
     DateTime now = rtc.now();
+    Serial.println("dude");
     int hour = now.hour();
     int minute = now.minute();
     bool isPm = false;
