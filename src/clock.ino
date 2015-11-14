@@ -2,18 +2,15 @@
 #include "RTClib.h"
 #include "Adafruit_LEDBackpack.h"
 #include "Adafruit_GFX.h"
+#include "Clock.h"
 
-struct Clock {
-  int hour;
-  int minute;
-  bool isPm;
-};
-Clock alarm = {6, 50, false};
+#define VIEW_BUTTON 9
+#define SET_MINUTE_BUTTON 8
+#define SET_HOUR_BUTTON 7
+
 RTC_DS1307 rtc;
 Adafruit_7segment matrix = Adafruit_7segment();
-int alarmViewButton = 9;
-int alarmMinuteSetButton = 8;
-int alarmHourSetButton = 7;
+AlarmClock* alarm;
 
 void setup () {
 #ifndef ESP8266
@@ -28,49 +25,31 @@ void setup () {
     Serial.println("RTC is NOT running!");
   }
   matrix.begin(0x70);
-  pinMode(alarmViewButton, INPUT_PULLUP);
-  pinMode(alarmMinuteSetButton, INPUT_PULLUP);
-  pinMode(alarmHourSetButton, INPUT_PULLUP);
+  alarm = new AlarmClock();
+  pinMode(VIEW_BUTTON, INPUT_PULLUP);
+  pinMode(SET_MINUTE_BUTTON, INPUT_PULLUP);
+  pinMode(SET_HOUR_BUTTON, INPUT_PULLUP);
 }
 
 void loop () {
-    DateTime now = rtc.now();
-    Serial.println("dude");
-    int hour = now.hour();
-    int minute = now.minute();
-    bool isPm = false;
-    if (hour > 12){
-      hour = hour - 12;
-      isPm = true;
-    }else if (hour == 0){
-      hour = 12;
+  DateTime now = rtc.now();
+  Clock* clock = new Clock(now.hour(), now.minute());
+  if(digitalRead(VIEW_BUTTON)==LOW){
+    if(digitalRead(SET_MINUTE_BUTTON)==LOW){
+      alarm->incrementMinute();
     }
-    int timeToDisplay = (hour*100)+minute;
-    if(digitalRead(alarmViewButton)==LOW){
-      if(digitalRead(alarmMinuteSetButton)==LOW){
-        if(alarm.minute==59){
-          alarm.minute=0;
-        }else{
-          alarm.minute++;
-        }
-      }
-      if(digitalRead(alarmHourSetButton)==LOW){
-        if(alarm.hour==12){
-          alarm.hour=1;
-          alarm.isPm=!alarm.isPm;
-        }else{
-          alarm.hour++;
-        }
-      }
-      timeToDisplay = (alarm.hour*100)+alarm.minute;
-      isPm = alarm.isPm;
+    if(digitalRead(SET_HOUR_BUTTON)==LOW){
+      alarm->incrementHour();
     }
-    matrix.print(timeToDisplay, DEC);
-    if(isPm){
-      matrix.writeDigitRaw(2, 0x0A);
-    }else{
-      matrix.drawColon(true);
-    }
-    matrix.writeDisplay();
-    delay(500);
+    delete clock;
+    clock = alarm;
+  }
+  matrix.print(formattedTime(clock), DEC);
+  if(clock->isPm()){
+    matrix.writeDigitRaw(2, 0x0A);
+  }else{
+    matrix.drawColon(true);
+  }
+  matrix.writeDisplay();
+  delay(500);
 }
