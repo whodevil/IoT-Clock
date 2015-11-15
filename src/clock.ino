@@ -1,15 +1,16 @@
 #include <Wire.h>
 #include "RTClib.h"
-#include "Adafruit_LEDBackpack.h"
-#include "Adafruit_GFX.h"
 #include "Clock.h"
+#include "Display.h"
 
 #define VIEW_BUTTON 9
 #define SET_MINUTE_BUTTON 8
 #define SET_HOUR_BUTTON 7
+#define SNOOZE_BUTTON 6
+#define ENABLE_ALARM_BUTTON 5
 
 RTC_DS1307 rtc;
-Adafruit_7segment matrix = Adafruit_7segment();
+Display* display;
 AlarmClock* alarm;
 
 void setup () {
@@ -24,11 +25,14 @@ void setup () {
   if (! rtc.isrunning()) {
     Serial.println("RTC is NOT running!");
   }
-  matrix.begin(0x70);
+
   alarm = new AlarmClock();
+  display = new Display();
   pinMode(VIEW_BUTTON, INPUT_PULLUP);
   pinMode(SET_MINUTE_BUTTON, INPUT_PULLUP);
   pinMode(SET_HOUR_BUTTON, INPUT_PULLUP);
+  pinMode(ENABLE_ALARM_BUTTON, INPUT_PULLUP);
+  pinMode(SNOOZE_BUTTON, INPUT_PULLUP);
 }
 
 void loop () {
@@ -43,13 +47,11 @@ void loop () {
     }
     delete clock;
     clock = alarm;
+  }else if(digitalRead(ENABLE_ALARM_BUTTON)==LOW){
+    alarm->setAlarmEnabled(!alarm->alarmEnabled());
   }
-  matrix.print(formattedTime(clock), DEC);
-  if(clock->isPm()){
-    matrix.writeDigitRaw(2, 0x0A);
-  }else{
-    matrix.drawColon(true);
-  }
-  matrix.writeDisplay();
+
+  display->setDisplay(clock, alarm->alarmEnabled());
+  display->writeDisplay();
   delay(500);
 }
