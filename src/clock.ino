@@ -17,15 +17,15 @@ void setup () {
 #ifndef ESP8266
   while (!Serial); // for Leonardo/Micro/Zero
 #endif
-  Serial.begin(57600);
+  Serial.begin(9600);
   if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
     while (1);
   }
   if (! rtc.isrunning()) {
     Serial.println("RTC is NOT running!");
+  //  rtc.adjust(DateTime(__DATE__, __TIME__));
   }
-
   alarm = new AlarmClock();
   display = new Display();
   pinMode(VIEW_BUTTON, INPUT_PULLUP);
