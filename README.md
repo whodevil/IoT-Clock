@@ -11,3 +11,14 @@ I want to build a clock that connects to a simple web service and can use text t
 
 ## Diagram
 TBD
+
+## Building
+You need to have virtualenv installed with python 2.7. Run the following commands:
+```
+> virtualenv virtual_env
+> source virtual_env/bin/activate
+> pip install platformio
+> platformio lib install 25
+> platformio lib install 83
+> platformio run
+``` 
