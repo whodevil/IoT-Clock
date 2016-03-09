@@ -1,5 +1,5 @@
-#include "Clock.h"
-#include "Display.h"
+#include "Clock.hpp"
+#include "Display.hpp"
 
 Display::Display(){
   m_matrix = Adafruit_7segment();
@@ -16,7 +16,7 @@ Display::Display(){
 0000 0110 alarm enabled
 */
 void Display::setDisplay(Clock* clock, bool alarmEnabled){
-  m_matrix.print(formattedTime(clock), DEC);
+  m_matrix.print(formattedTime(*clock), DEC);
   bool isPm = clock->isPm();
   if(isPm&&alarmEnabled){
     m_matrix.writeDigitRaw(2, 0x0E);

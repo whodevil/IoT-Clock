@@ -1,26 +1,30 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
 #include "RTClib.h"
-#include "Clock.h"
-#include "Display.h"
+#include "Clock.hpp"
+#include "Display.hpp"
 
-#define VIEW_BUTTON 9
-#define SET_MINUTE_BUTTON 8
-#define SET_HOUR_BUTTON 7
-#define SNOOZE_BUTTON 6
-#define ENABLE_ALARM_SWITCH 5
-#define VOICE_RX 10
-#define VOICE_TX 11
+enum PinNumbers {
+  ENABLE_ALARM_SWITCH = 5,
+  SNOOZE_BUTTON = 6,
+  SET_HOUR_BUTTON = 7,
+  SET_MINUTE_BUTTON = 8,
+  VIEW_BUTTON = 9,
+  VOICE_RX = 10,
+  VOICE_TX = 11
+};
 
-RTC_DS1307 rtc;
-Display* display;
-AlarmClock* alarm;
-SoftwareSerial voiceSerial = SoftwareSerial(VOICE_RX, VOICE_TX);
+namespace {
+  RTC_DS1307 rtc;
+  Display* display = NULL; //nullptr c++ 11
+  AlarmClock* alarm = NULL;
+  SoftwareSerial voiceSerial = SoftwareSerial(VOICE_RX, VOICE_TX);
+}
 
 void setup () {
   setupPins();
 #ifndef ESP8266
-  while (!Serial); // for Leonardo/Micro/Zero
+  while (!Serial); 
 #endif
   Serial.begin(9600);
   initVoice();
@@ -30,6 +34,7 @@ void setup () {
 }
 
 void loop () {
+  //push this into the clock object and setup clock in setup block
   DateTime now = rtc.now();
   Clock* clock = new Clock(now.hour(), now.minute());
   if(digitalRead(VIEW_BUTTON)==LOW){
@@ -71,7 +76,7 @@ void initVoice(){
   voiceSerial.print("N8");
   voiceSerial.print("\n");
   while (voiceSerial.read() != ':');   // When the Emic 2 has initialized and is ready, it will send a single ':' character, so wait here until we receive it
-  delay(10);                          // Short delay
+  delay(10);                           // Short delay, this makes user input when changing the alarm work
   voiceSerial.flush();                 // Flush the receive buffer
 }
 
